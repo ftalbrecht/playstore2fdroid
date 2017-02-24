@@ -21,10 +21,15 @@ VOLUME [/import.txt]
 VOLUME [/raccoon]
 VOLUME [/fdroid]
 
-ENV CRONTIME="*	*/4	*	*	*"
-
-RUN echo "$CRONTIME	root	/bin/cron.sh >> /var/log/output.log" >> /etc/crontab
+# Format:     m h    dom mon dow
+#ENV CRONTIME="* */4   *   *   *"
+ENV CRONTIME="* */10   *   *   *"
+RUN echo "$CRONTIME  root	/bin/cron.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/play2fdroid-cron
+#empty Line at the End of the crontab
+RUN echo "" >> /etc/cron.d/play2fdroid-cron
+RUN /usr/bin/crontab /etc/cron.d/play2fdroid-cron
 
 WORKDIR /fdroid
-ENTRYPOINT ["cron","-f"]
+CMD ["cron","-f"]
+#CMD cron && tail -f /var/log/cron.log
 #ENTRYPOINT ["cron","-f","&&","tail","-f","/var/log/output.log"]

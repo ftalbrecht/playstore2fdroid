@@ -1,13 +1,16 @@
 #!/bin/bash
-RACCOON="/raccoonArchive"
+RACCOON="/raccoon"
 FDROID="/fdroid"
-OWNER="core:core"
+
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 function moveAPK {
 	input="$1"
 	output="$2"
-	ln -s $input $output
-	chown $OWNER $output
+	if [ ! -f $output ]
+	then
+		ln -s $input $output
+	fi
 }
 
 
@@ -37,26 +40,33 @@ function moveRecursive {
 }
 
 #check if there is something to import
-if [ -f "/import.txt"]
+echo "### importing new Apps to RACCOON..."
+if [ -s "/import.txt" ]
 then
 	java -jar /bin/raccoon.jar -a $RACCOON -i /import.txt
+	echo "" > /import.txt
+else
+	echo "nothing to import"
 fi
-
+echo "### updating RACCOON Apps..."
 java -jar /bin/raccoon.jar -a $RACCOON -u
 
 #check if config is available
-if [ -f "$FDROID/config.py" ]
+if [ ! -f "$FDROID/config.py" ]
 then
+	echo "### initializing new FDROID Repository..."
 	cd $FDROID
   fdroid init
 fi
 
 # Link all APKs to FDroid Repo
+echo "### link Apps from RACCOON to FDROID..."
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
 moveRecursive $RACCOON
 IFS=$SAVEIFS
 
 cd $FDROID
-# Update Fdroid and creat Metadata if needed
+# Update Fdroid and create Metadata if needed
+echo "### updating FDROID..."
 fdroid update -c
