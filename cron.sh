@@ -9,7 +9,7 @@ function moveAPK {
 	output="$2"
 	if [ ! -f $output ]
 	then
-		ln -s $input $output
+		cp -f $input $output
 	fi
 }
 
